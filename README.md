@@ -18,6 +18,7 @@ passport.use(new ControlTowerStrategy({
 }));
 ```
 
+
 ### Examples of use:
 
 * [Express JS](./examples/express-example.js)
