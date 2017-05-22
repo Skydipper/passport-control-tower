@@ -20,8 +20,8 @@ passport.use(new ControlTowerStrategy({
 
 ### Examples of use:
 
-* [Express JS](./examples/express.js)
-* [Next JS](./examples/next.js)
+* [Express JS](./examples/express-example.js)
+* [Next JS](./examples/next-example.js)
 
 
 ## Contributing
