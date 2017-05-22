@@ -1,5 +1,6 @@
 const express = require('express');
 const passport = require('passport');
+const next = require('next');
 const ControlTowerStrategy = require('passport-control-tower');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
