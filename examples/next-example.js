@@ -6,9 +6,12 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { parse } = require('url');
 const routes = require('./routes');
+const port = process.env.PORT || 3000;
 
 // Next app creation
 const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = routes.getRequestHandler(app);
 const app = next({ dev });
 const handle = routes.getRequestHandler(app);
 
@@ -47,27 +50,34 @@ server.use(require('express-session')({ secret: 'keyboard cat', resave: false, s
 server.use(passport.initialize());
 server.use(passport.session());
 
-// Public/landing page
-server.get('/', function (req, res) {
-  const { query } = parse(req.url, true);
-  app.render(req, res, '/landing', query);
-});
+// Initializing next app before express server
+app.prepare()
+  .then(() => {
+    // Public/landing page
+    server.get('/', function (req, res) {
+      return app.render(req, res, '/landing');
+    });
 
-server.get('/login', passport.authenticate('control-tower'), function (req, res) {
-  // Success
-  res.redirect('/admin');
-});
+    // This should be callback URL
+    server.get('/login', passport.authenticate('control-tower'), function (req, res) {
+      // Success
+      res.redirect('/admin');
+    });
 
-server.get('/logout', function (req, res) {
-  req.session.destroy();
-  req.logout();
-  // Success
-  res.redirect('/');
-});
+    server.get('/logout', function (req, res) {
+      req.session.destroy();
+      req.logout();
+      // Success
+      res.redirect('/');
+    });
 
-server.get('/admin(/*)', isAuthenticated, function (req, res) {
-  const parsedUrl = parse(req.url, true);
-  handle(req, res, parsedUrl);
-});
+    server.get('/admin*', isAuthenticated, function (req, res) {
+      const parsedUrl = parse(req.url, true);
+      return handle(req, res, parsedUrl);
+    });
 
-server.listen(3000);
+    server.listen(port, (err) => {
+      if (err) throw err;
+      console.log(`> Ready on http://localhost:${port}`);
+    });
+  });
