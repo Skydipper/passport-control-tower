@@ -45,6 +45,7 @@ app.get('/private', isAuthenticated, function (req, res) {
   res.send('Success!');
 });
 
+// This should be callback URL
 app.get('/login', passport.authenticate('control-tower'), function (req, res) {
   // Success
   res.redirect('/private');
