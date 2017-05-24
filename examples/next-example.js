@@ -1,17 +1,17 @@
 const express = require('express');
 const passport = require('passport');
 const next = require('next');
+const session = require('express-session');
 const ControlTowerStrategy = require('passport-control-tower');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { parse } = require('url');
 const routes = require('./routes');
+
 const port = process.env.PORT || 3000;
+const dev = process.env.NODE_ENV !== 'production';
 
 // Next app creation
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = routes.getRequestHandler(app);
 const app = next({ dev });
 const handle = routes.getRequestHandler(app);
 
@@ -26,8 +26,8 @@ function isAuthenticated(req, res, nextAction) {
 
 // Use the Control Tower Strategy within Passport.
 passport.use(new ControlTowerStrategy({
-  apiUrl: '[CONTROL_TOWER_API_URL]',
-  callbackUrl: '[YOUR_CALLBACK_URL]'
+  apiUrl: process.env.CONTROL_TOWER_API_URL,
+  callbackUrl: process.env.CALLBACK_URL
 }));
 
 // Passport session setup.
@@ -44,7 +44,11 @@ passport.deserializeUser(function (obj, done) {
 server.use(cookieParser());
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
-server.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
+server.use(session({
+  secret: process.env.SECRET || 'keyboard cat',
+  resave: false,
+  saveUninitialized: false
+}));
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
 server.use(passport.initialize());
@@ -58,7 +62,6 @@ app.prepare()
       return app.render(req, res, '/landing');
     });
 
-    // This should be callback URL
     server.get('/login', passport.authenticate('control-tower'), function (req, res) {
       // Success
       res.redirect('/admin');
@@ -71,10 +74,12 @@ app.prepare()
       res.redirect('/');
     });
 
-    server.get('/admin*', isAuthenticated, function (req, res) {
+    server.get('/admin', isAuthenticated, function (req, res) {
       const parsedUrl = parse(req.url, true);
       return handle(req, res, parsedUrl);
     });
+
+    server.use(handle);
 
     server.listen(port, (err) => {
       if (err) throw err;
