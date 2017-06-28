@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const next = require('next');
 const session = require('express-session');
+const cookieSession = require('cookie-session');
 const ControlTowerStrategy = require('passport-control-tower');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -21,14 +22,14 @@ const server = express();
 function isAuthenticated(req, res, nextAction) {
   if (req.isAuthenticated()) return nextAction();
   // if they aren't redirect them to the home page
-  res.redirect('/login');
+  res.redirect('/');
 }
-
 // Use the Control Tower Strategy within Passport.
-passport.use(new ControlTowerStrategy({
-  apiUrl: process.env.CONTROL_TOWER_API_URL,
-  callbackUrl: process.env.CALLBACK_URL
-}));
+const controlTowerStrategy = new ControlTowerStrategy({
+  controlTowerUrl: '[CONTROL_TOWER_API_URL]',
+  callbackUrl: '[YOUR_CALLBACK_URL]' // auth path
+});
+passport.use(controlTowerStrategy);
 
 // Passport session setup.
 // To support persistent login sessions, Passport needs to be able to
@@ -44,10 +45,14 @@ passport.deserializeUser(function (obj, done) {
 server.use(cookieParser());
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
+server.use(cookieSession({
+  name: 'session',
+  keys: [process.env.SECRET || 'keyboard cat']
+}));
 server.use(session({
   secret: process.env.SECRET || 'keyboard cat',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: true
 }));
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
@@ -62,16 +67,17 @@ app.prepare()
       return app.render(req, res, '/landing');
     });
 
-    server.get('/login', passport.authenticate('control-tower'), function (req, res) {
-      // Success
-      res.redirect('/admin');
+    server.get('/login', function(req, res) {
+      controlTowerStrategy.login(req, res);
     });
 
     server.get('/logout', function (req, res) {
-      req.session.destroy();
       req.logout();
-      // Success
       res.redirect('/');
+    });
+
+    server.get('/auth', passport.authenticate('control-tower', { failureRedirect: '/' }), function (req, res) {
+      res.redirect('/admin');
     });
 
     server.get('/admin', isAuthenticated, function (req, res) {

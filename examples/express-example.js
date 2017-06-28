@@ -8,14 +8,15 @@ const app = express();
 function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return next();
   // if they aren't redirect them to the home page
-  res.redirect('/login');
+  res.redirect('/');
 }
 
 // Use the Control Tower Strategy within Passport.
-passport.use(new ControlTowerStrategy({
-  apiUrl: '[CONTROL_TOWER_API_URL]',
-  callbackUrl: '[YOUR_CALLBACK_URL]'
-}));
+const controlTowerStrategy = new ControlTowerStrategy({
+  controlTowerUrl: '[CONTROL_TOWER_API_URL]',
+  callbackUrl: '[YOUR_CALLBACK_URL]' // auth path
+});
+passport.use(controlTowerStrategy);
 
 // Passport session setup.
 // To support persistent login sessions, Passport needs to be able to
@@ -46,10 +47,15 @@ app.get('/private', isAuthenticated, function (req, res) {
 });
 
 // This should be callback URL
-app.get('/login', passport.authenticate('control-tower'), function (req, res) {
+app.get('/auth', passport.authenticate('control-tower'), function (req, res) {
   // Success
   res.redirect('/private');
 });
+
+app.get('/login', function(req, res) {
+  controlTowerStrategy.login(req, res);
+});
+
 
 app.get('/logout', function (req, res) {
   req.session.destroy();

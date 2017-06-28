@@ -13,11 +13,10 @@ npm install --save passport-control-tower
 
 ```js
 passport.use(new ControlTowerStrategy({
-  apiUrl: '[CONTROL_TOWER_API_URL]',
+  controlTowerUrl: '[CONTROL_TOWER_API_URL]',
   callbackUrl: '[YOUR_CALLBACK_URL]'
 }));
 ```
-
 
 ### Examples of use:
 
