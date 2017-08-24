@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidsingal/passport-control-tower.git"
+    "url": "git+https://github.com/control-tower/passport-control-tower.git"
   },
   "author": "David Inga",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/davidsingal/passport-control-tower/issues"
+    "url": "https://github.com/control-tower/passport-control-tower/issues"
   },
-  "homepage": "https://github.com/davidsingal/passport-control-tower#readme",
+  "homepage": "https://github.com/control-tower/passport-control-tower#readme",
   "devDependencies": {
     "eslint": "^3.15.0",
     "eslint-config-vizzuality": "^1.0.3"
